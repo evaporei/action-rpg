@@ -18,35 +18,36 @@ impl HelloWorld {
 
 #[derive(NativeClass)]
 #[inherit(KinematicBody2D)]
-struct Player;
+struct Player {
+    velocity: Vector2,
+}
 
 #[gdnative::methods]
 impl Player {
     fn new(_owner: &KinematicBody2D) -> Self {
-       Player 
+       Player { velocity: Vector2::new(0.0, 0.0) }
     }
 
     #[export]
     fn _physics_process(&mut self, owner: &KinematicBody2D, _delta: f64) {
-        let mut velocity = Vector2::new(0.0, 0.0);
-
         let ui_right = GodotString::from_str("ui_right");
         let ui_left = GodotString::from_str("ui_left");
         let ui_up = GodotString::from_str("ui_up");
         let ui_down = GodotString::from_str("ui_down");
-        if Input::godot_singleton().is_action_pressed(ui_right) {
-            velocity.x += 4_f32;
-        } else if Input::godot_singleton().is_action_pressed(ui_left) {
-            velocity.x -= 4_f32;
-        } else if Input::godot_singleton().is_action_pressed(ui_up) {
-            velocity.y -= 4_f32;
-        } else if Input::godot_singleton().is_action_pressed(ui_down) {
-            velocity.y += 4_f32;
+
+        let godot_singleton = Input::godot_singleton();
+
+        let mut input_vector = Vector2::new(0.0, 0.0);
+        input_vector.x = (godot_singleton.get_action_strength(ui_right) - godot_singleton.get_action_strength(ui_left)) as f32;
+        input_vector.y = (godot_singleton.get_action_strength(ui_down) - godot_singleton.get_action_strength(ui_up)) as f32;
+
+        if input_vector != Vector2::new(0.0, 0.0) {
+            self.velocity = input_vector;
         } else {
-            velocity.x = 0_f32;
-            velocity.y = 0_f32;
+            self.velocity = Vector2::new(0.0, 0.0);
         }
-        owner.move_and_collide(velocity, false, false, false);
+
+        owner.move_and_collide(self.velocity, false, false, false);
     }
 
 }
