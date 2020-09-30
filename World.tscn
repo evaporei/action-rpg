@@ -2,5 +2,5 @@
 
 [ext_resource path="res://Node.gdns" type="Script" id=1]
 
-[node name="Node" type="Node"]
+[node name="World" type="Node"]
 script = ExtResource( 1 )
