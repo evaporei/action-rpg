@@ -1,22 +1,6 @@
 use gdnative::prelude::*;
 
 #[derive(NativeClass)]
-#[inherit(Node)]
-struct HelloWorld;
-
-#[gdnative::methods]
-impl HelloWorld {
-    fn new(_owner: &Node) -> Self {
-        HelloWorld
-    }
-
-    #[export]
-    fn _ready(&self, _owner: &Node) {
-        godot_print!("hello, world.")
-    }
-}
-
-#[derive(NativeClass)]
 #[inherit(KinematicBody2D)]
 struct Player {
     velocity: Vector2,
@@ -53,7 +37,6 @@ impl Player {
 }
 
 fn init(handle: InitHandle) {
-    handle.add_class::<HelloWorld>();
     handle.add_class::<Player>();
 }
 
