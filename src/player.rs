@@ -1,6 +1,8 @@
-use gdnative::prelude::{Input, KinematicBody2D, NativeClass, Vector2};
+use gdnative::prelude::{Input, KinematicBody2D, NativeClass, Vector2, Vector2Godot};
 
-const MAX_SPEED: f32 = 100.0;
+const ACCELERATION: f32 = 25.0;
+const MAX_SPEED: f32 = 200.0;
+const FRICTION: f32 = 25.0;
 
 #[derive(NativeClass)]
 #[inherit(KinematicBody2D)]
@@ -50,12 +52,17 @@ impl Player {
 
         if input_vector != Vector2::new(0.0, 0.0) {
             input_vector = input_vector.normalize();
-            self.velocity = input_vector * MAX_SPEED;
-        } else {
-            self.velocity = Vector2::new(0.0, 0.0);
-        }
 
-        self.velocity *= delta as f32;
+            self.velocity += input_vector * ACCELERATION * (delta as f32);
+            self.velocity = self.velocity.clamp(
+                Vector2::new(0.0, 0.0),
+                self.velocity * (MAX_SPEED * (delta as f32)),
+            );
+        } else {
+            self.velocity = self
+                .velocity
+                .move_towards(Vector2::new(0.0, 0.0), FRICTION * (delta as f32));
+        }
     }
 }
 
@@ -74,7 +81,7 @@ fn test_move_right() {
 
     player.r#move(1.0, 0.0, 0.0, 0.0, 0.6);
 
-    assert_eq!(player.velocity, Vector2::new(60.000004, 0.0));
+    assert_eq!(player.velocity, Vector2::new(15.000001, 0.0));
 }
 
 #[test]
@@ -83,7 +90,7 @@ fn test_move_left() {
 
     player.r#move(0.0, 1.0, 0.0, 0.0, 0.6);
 
-    assert_eq!(player.velocity, Vector2::new(-60.000004, 0.0));
+    assert_eq!(player.velocity, Vector2::new(-1800.0002, 0.0));
 }
 
 #[test]
@@ -92,7 +99,7 @@ fn test_move_down() {
 
     player.r#move(0.0, 0.0, 1.0, 0.0, 0.6);
 
-    assert_eq!(player.velocity, Vector2::new(0.0, 60.000004));
+    assert_eq!(player.velocity, Vector2::new(0.0, 15.000001));
 }
 
 #[test]
@@ -101,7 +108,7 @@ fn test_move_up() {
 
     player.r#move(0.0, 0.0, 0.0, 1.0, 0.6);
 
-    assert_eq!(player.velocity, Vector2::new(0.0, -60.000004));
+    assert_eq!(player.velocity, Vector2::new(0.0, -1800.0002));
 }
 
 #[test]
@@ -112,5 +119,5 @@ fn test_move_diagonals() {
     player.r#move(0.0, 1.0, 1.0, 0.0, 0.6);
     player.r#move(1.0, 0.0, 0.0, 1.0, 0.6);
 
-    assert_eq!(player.velocity, Vector2::new(42.426407, -42.426407));
+    assert_eq!(player.velocity, Vector2::new(-18_479_672.0, 10.606602));
 }
