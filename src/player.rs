@@ -1,5 +1,7 @@
 use gdnative::prelude::{Input, KinematicBody2D, NativeClass, Vector2};
 
+const MAX_SPEED: f32 = 100.0;
+
 #[derive(NativeClass)]
 #[inherit(KinematicBody2D)]
 #[derive(Default)]
@@ -14,7 +16,7 @@ impl Player {
     }
 
     #[export]
-    fn _physics_process(&mut self, owner: &KinematicBody2D, _delta: f64) {
+    fn _physics_process(&mut self, owner: &KinematicBody2D, delta: f64) {
         let godot_singleton = Input::godot_singleton();
 
         let right_strength = godot_singleton.get_action_strength("ui_right");
@@ -22,7 +24,13 @@ impl Player {
         let down_strength = godot_singleton.get_action_strength("ui_down");
         let up_strength = godot_singleton.get_action_strength("ui_up");
 
-        self.r#move(right_strength, left_strength, down_strength, up_strength);
+        self.r#move(
+            right_strength,
+            left_strength,
+            down_strength,
+            up_strength,
+            delta,
+        );
 
         owner.move_and_collide(self.velocity, false, false, false);
     }
@@ -33,6 +41,7 @@ impl Player {
         left_strength: f64,
         down_strength: f64,
         up_strength: f64,
+        delta: f64,
     ) {
         let mut input_vector = Vector2::new(0.0, 0.0);
 
@@ -44,6 +53,8 @@ impl Player {
         } else {
             self.velocity = Vector2::new(0.0, 0.0);
         }
+
+        self.velocity *= (delta as f32) * MAX_SPEED;
     }
 }
 
@@ -51,7 +62,7 @@ impl Player {
 fn test_move_nothing() {
     let mut player = Player::default();
 
-    player.r#move(0.0, 0.0, 0.0, 0.0);
+    player.r#move(0.0, 0.0, 0.0, 0.0, 0.6);
 
     assert_eq!(player.velocity, Vector2::new(0.0, 0.0));
 }
@@ -60,44 +71,44 @@ fn test_move_nothing() {
 fn test_move_right() {
     let mut player = Player::default();
 
-    player.r#move(1.5, 0.5, 0.0, 0.0);
+    player.r#move(1.5, 0.5, 0.0, 0.0, 0.6);
 
-    assert_eq!(player.velocity, Vector2::new(1.0, 0.0));
+    assert_eq!(player.velocity, Vector2::new(60.000004, 0.0));
 }
 
 #[test]
 fn test_move_left() {
     let mut player = Player::default();
 
-    player.r#move(0.5, 1.5, 0.0, 0.0);
+    player.r#move(0.5, 1.5, 0.0, 0.0, 0.6);
 
-    assert_eq!(player.velocity, Vector2::new(-1.0, 0.0));
+    assert_eq!(player.velocity, Vector2::new(-60.000004, 0.0));
 }
 
 #[test]
 fn test_move_down() {
     let mut player = Player::default();
 
-    player.r#move(0.0, 0.0, 1.5, 0.5);
+    player.r#move(0.0, 0.0, 1.5, 0.5, 0.6);
 
-    assert_eq!(player.velocity, Vector2::new(0.0, 1.0));
+    assert_eq!(player.velocity, Vector2::new(0.0, 60.000004));
 }
 
 #[test]
 fn test_move_up() {
     let mut player = Player::default();
 
-    player.r#move(0.0, 0.0, 0.5, 1.5);
+    player.r#move(0.0, 0.0, 0.5, 1.5, 0.6);
 
-    assert_eq!(player.velocity, Vector2::new(0.0, -1.0));
+    assert_eq!(player.velocity, Vector2::new(0.0, -60.000004));
 }
 
 #[test]
 fn test_move_diagonals() {
     let mut player = Player::default();
 
-    player.r#move(0.0, 1.5, 1.5, 0.0);
-    player.r#move(0.5, 0.0, 0.0, 0.5);
+    player.r#move(0.0, 1.5, 1.5, 0.0, 0.6);
+    player.r#move(0.5, 0.0, 0.0, 0.5, 0.6);
 
-    assert_eq!(player.velocity, Vector2::new(0.5, -0.5));
+    assert_eq!(player.velocity, Vector2::new(30.000002, -30.000002));
 }
