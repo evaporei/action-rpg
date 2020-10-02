@@ -71,7 +71,7 @@ fn test_move_nothing() {
 fn test_move_right() {
     let mut player = Player::default();
 
-    player.r#move(1.5, 0.5, 0.0, 0.0, 0.6);
+    player.r#move(1.0, 0.0, 0.0, 0.0, 0.6);
 
     assert_eq!(player.velocity, Vector2::new(60.000004, 0.0));
 }
@@ -80,7 +80,7 @@ fn test_move_right() {
 fn test_move_left() {
     let mut player = Player::default();
 
-    player.r#move(0.5, 1.5, 0.0, 0.0, 0.6);
+    player.r#move(0.0, 1.0, 0.0, 0.0, 0.6);
 
     assert_eq!(player.velocity, Vector2::new(-60.000004, 0.0));
 }
@@ -89,7 +89,7 @@ fn test_move_left() {
 fn test_move_down() {
     let mut player = Player::default();
 
-    player.r#move(0.0, 0.0, 1.5, 0.5, 0.6);
+    player.r#move(0.0, 0.0, 1.0, 0.0, 0.6);
 
     assert_eq!(player.velocity, Vector2::new(0.0, 60.000004));
 }
@@ -98,7 +98,7 @@ fn test_move_down() {
 fn test_move_up() {
     let mut player = Player::default();
 
-    player.r#move(0.0, 0.0, 0.5, 1.5, 0.6);
+    player.r#move(0.0, 0.0, 0.0, 1.0, 0.6);
 
     assert_eq!(player.velocity, Vector2::new(0.0, -60.000004));
 }
@@ -107,8 +107,9 @@ fn test_move_up() {
 fn test_move_diagonals() {
     let mut player = Player::default();
 
-    player.r#move(0.0, 1.5, 1.5, 0.0, 0.6);
-    player.r#move(0.5, 0.0, 0.0, 0.5, 0.6);
+    player.r#move(0.0, 1.0, 1.0, 0.0, 0.6);
+    player.r#move(0.0, 1.0, 1.0, 0.0, 0.6);
+    player.r#move(1.0, 0.0, 0.0, 1.0, 0.6);
 
-    assert_eq!(player.velocity, Vector2::new(30.000002, -30.000002));
+    assert_eq!(player.velocity, Vector2::new(60.000002, -60.000002));
 }
