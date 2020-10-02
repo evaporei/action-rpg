@@ -1,4 +1,4 @@
-use gdnative::prelude::{GodotString, Input, KinematicBody2D, NativeClass, Vector2};
+use gdnative::prelude::{Input, KinematicBody2D, NativeClass, Vector2};
 
 #[derive(NativeClass)]
 #[inherit(KinematicBody2D)]
@@ -16,17 +16,12 @@ impl Player {
 
     #[export]
     fn _physics_process(&mut self, owner: &KinematicBody2D, _delta: f64) {
-        let ui_right = GodotString::from_str("ui_right");
-        let ui_left = GodotString::from_str("ui_left");
-        let ui_up = GodotString::from_str("ui_up");
-        let ui_down = GodotString::from_str("ui_down");
-
         let godot_singleton = Input::godot_singleton();
 
-        let right_strength = godot_singleton.get_action_strength(ui_right);
-        let left_strength = godot_singleton.get_action_strength(ui_left);
-        let down_strength = godot_singleton.get_action_strength(ui_down);
-        let up_strength = godot_singleton.get_action_strength(ui_up);
+        let right_strength = godot_singleton.get_action_strength("ui_right");
+        let left_strength = godot_singleton.get_action_strength("ui_left");
+        let down_strength = godot_singleton.get_action_strength("ui_down");
+        let up_strength = godot_singleton.get_action_strength("ui_up");
 
         self.r#move(right_strength, left_strength, down_strength, up_strength);
 
