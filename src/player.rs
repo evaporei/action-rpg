@@ -1,4 +1,4 @@
-use gdnative::prelude::{NativeClass, KinematicBody2D, Vector2, GodotString, Input};
+use gdnative::prelude::{GodotString, Input, KinematicBody2D, NativeClass, Vector2};
 
 #[derive(NativeClass)]
 #[inherit(KinematicBody2D)]
@@ -9,7 +9,9 @@ pub struct Player {
 #[gdnative::methods]
 impl Player {
     fn new(_owner: &KinematicBody2D) -> Self {
-       Player { velocity: Vector2::new(0.0, 0.0) }
+        Player {
+            velocity: Vector2::new(0.0, 0.0),
+        }
     }
 
     #[export]
@@ -22,8 +24,10 @@ impl Player {
         let godot_singleton = Input::godot_singleton();
 
         let mut input_vector = Vector2::new(0.0, 0.0);
-        input_vector.x = (godot_singleton.get_action_strength(ui_right) - godot_singleton.get_action_strength(ui_left)) as f32;
-        input_vector.y = (godot_singleton.get_action_strength(ui_down) - godot_singleton.get_action_strength(ui_up)) as f32;
+        input_vector.x = (godot_singleton.get_action_strength(ui_right)
+            - godot_singleton.get_action_strength(ui_left)) as f32;
+        input_vector.y = (godot_singleton.get_action_strength(ui_down)
+            - godot_singleton.get_action_strength(ui_up)) as f32;
 
         if input_vector != Vector2::new(0.0, 0.0) {
             self.velocity = input_vector;
@@ -33,5 +37,4 @@ impl Player {
 
         owner.move_and_collide(self.velocity, false, false, false);
     }
-
 }
