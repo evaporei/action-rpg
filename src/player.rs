@@ -2,6 +2,7 @@ use gdnative::prelude::{Input, KinematicBody2D, NativeClass, Vector2};
 
 #[derive(NativeClass)]
 #[inherit(KinematicBody2D)]
+#[derive(Default)]
 pub struct Player {
     velocity: Vector2,
 }
@@ -9,9 +10,7 @@ pub struct Player {
 #[gdnative::methods]
 impl Player {
     fn new(_owner: &KinematicBody2D) -> Self {
-        Player {
-            velocity: Vector2::new(0.0, 0.0),
-        }
+        Player::default()
     }
 
     #[export]
@@ -46,4 +45,59 @@ impl Player {
             self.velocity = Vector2::new(0.0, 0.0);
         }
     }
+}
+
+#[test]
+fn test_move_nothing() {
+    let mut player = Player::default();
+
+    player.r#move(0.0, 0.0, 0.0, 0.0);
+
+    assert_eq!(player.velocity, Vector2::new(0.0, 0.0));
+}
+
+#[test]
+fn test_move_right() {
+    let mut player = Player::default();
+
+    player.r#move(1.5, 0.5, 0.0, 0.0);
+
+    assert_eq!(player.velocity, Vector2::new(1.0, 0.0));
+}
+
+#[test]
+fn test_move_left() {
+    let mut player = Player::default();
+
+    player.r#move(0.5, 1.5, 0.0, 0.0);
+
+    assert_eq!(player.velocity, Vector2::new(-1.0, 0.0));
+}
+
+#[test]
+fn test_move_down() {
+    let mut player = Player::default();
+
+    player.r#move(0.0, 0.0, 1.5, 0.5);
+
+    assert_eq!(player.velocity, Vector2::new(0.0, 1.0));
+}
+
+#[test]
+fn test_move_up() {
+    let mut player = Player::default();
+
+    player.r#move(0.0, 0.0, 0.5, 1.5);
+
+    assert_eq!(player.velocity, Vector2::new(0.0, -1.0));
+}
+
+#[test]
+fn test_move_diagonals() {
+    let mut player = Player::default();
+
+    player.r#move(0.0, 1.5, 1.5, 0.0);
+    player.r#move(0.5, 0.0, 0.0, 0.5);
+
+    assert_eq!(player.velocity, Vector2::new(0.5, -0.5));
 }
