@@ -49,12 +49,12 @@ impl Player {
         input_vector.y = (down_strength - up_strength) as f32;
 
         if input_vector != Vector2::new(0.0, 0.0) {
-            self.velocity = input_vector;
+            self.velocity = input_vector * MAX_SPEED;
         } else {
             self.velocity = Vector2::new(0.0, 0.0);
         }
 
-        self.velocity *= (delta as f32) * MAX_SPEED;
+        self.velocity *= delta as f32;
     }
 }
 
