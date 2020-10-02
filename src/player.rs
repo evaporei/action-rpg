@@ -49,6 +49,7 @@ impl Player {
         input_vector.y = (down_strength - up_strength) as f32;
 
         if input_vector != Vector2::new(0.0, 0.0) {
+            input_vector = input_vector.normalize();
             self.velocity = input_vector * MAX_SPEED;
         } else {
             self.velocity = Vector2::new(0.0, 0.0);
@@ -111,5 +112,5 @@ fn test_move_diagonals() {
     player.r#move(0.0, 1.0, 1.0, 0.0, 0.6);
     player.r#move(1.0, 0.0, 0.0, 1.0, 0.6);
 
-    assert_eq!(player.velocity, Vector2::new(60.000002, -60.000002));
+    assert_eq!(player.velocity, Vector2::new(42.426407, -42.426407));
 }
