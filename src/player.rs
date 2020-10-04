@@ -1,8 +1,8 @@
 use gdnative::prelude::{Input, KinematicBody2D, NativeClass, Vector2, Vector2Godot};
 
-const ACCELERATION: f64 = 500.0;
-const MAX_SPEED: f64 = 80.0;
-const FRICTION: f64 = 500.0;
+const ACCELERATION: f32 = 500.0;
+const MAX_SPEED: f32 = 80.0;
+const FRICTION: f32 = 500.0;
 
 #[derive(NativeClass)]
 #[inherit(KinematicBody2D)]
@@ -54,11 +54,11 @@ impl Player {
             input_vector = input_vector.normalize();
             self.velocity = self
                 .velocity
-                .move_towards(input_vector * MAX_SPEED as f32, ACCELERATION as f32 * delta);
+                .move_towards(input_vector * MAX_SPEED, ACCELERATION * delta);
         } else {
             self.velocity = self
                 .velocity
-                .move_towards(Vector2::new(0.0, 0.0), FRICTION as f32 * delta);
+                .move_towards(Vector2::new(0.0, 0.0), FRICTION * delta);
         }
     }
 }
