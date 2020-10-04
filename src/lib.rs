@@ -1,5 +1,6 @@
 use gdnative::prelude::{godot_init, InitHandle};
 
+mod extensions;
 mod player;
 
 use player::Player;
