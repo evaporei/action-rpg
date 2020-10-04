@@ -34,7 +34,8 @@ impl Player {
             delta,
         );
 
-        owner.move_and_collide(self.velocity * delta, true, true, false);
+        self.velocity =
+            owner.move_and_slide(self.velocity, Vector2::zero(), false, 4, 0.785398, true);
     }
 
     fn r#move(
