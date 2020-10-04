@@ -11,37 +11,62 @@ const FRICTION: f32 = 500.0;
 #[derive(Default)]
 pub struct Player {
     velocity: Vector2,
+    state: State,
+}
+
+enum State {
+    Move,
+    Attack,
+}
+
+impl Default for State {
+    fn default() -> Self {
+        Self::Move
+    }
 }
 
 #[gdnative::methods]
 impl Player {
     fn new(_owner: &KinematicBody2D) -> Self {
-        Player {
-            velocity: Vector2::zero(),
-        }
+        Player::default()
     }
 
     #[export]
     fn _physics_process(&mut self, owner: &KinematicBody2D, delta: f32) {
         let animation_tree = unsafe { owner.get_typed_node::<AnimationTree, _>("AnimationTree") };
+        let playback_prop = animation_tree
+            .get("parameters/playback")
+            .try_to_object()
+            .unwrap();
+        let animation_state: TRef<AnimationNodeStateMachinePlayback> =
+            unsafe { playback_prop.assume_safe() };
 
-        let input_vector = self.get_movement_input();
+        let input_singleton = Input::godot_singleton();
 
-        self.animate(&animation_tree, input_vector);
+        match self.state {
+            State::Move => {
+                let input_vector = self.get_movement_input(input_singleton);
 
-        self.r#move(input_vector, delta);
+                self.animate(&animation_tree, &animation_state, input_vector);
 
-        self.velocity =
-            owner.move_and_slide(self.velocity, Vector2::zero(), false, 4, 0.785398, true);
+                self.r#move(input_vector, delta);
+
+                self.velocity =
+                    owner.move_and_slide(self.velocity, Vector2::zero(), false, 4, 0.785398, true);
+
+                self.handle_attack_input(input_singleton);
+            }
+            State::Attack => {
+                self.attack(&animation_state);
+            }
+        };
     }
 
-    fn get_movement_input(&self) -> Vector2 {
-        let godot_singleton = Input::godot_singleton();
-
-        let right_strength = godot_singleton.get_action_strength("ui_right");
-        let left_strength = godot_singleton.get_action_strength("ui_left");
-        let down_strength = godot_singleton.get_action_strength("ui_down");
-        let up_strength = godot_singleton.get_action_strength("ui_up");
+    fn get_movement_input(&self, input: &Input) -> Vector2 {
+        let right_strength = input.get_action_strength("ui_right");
+        let left_strength = input.get_action_strength("ui_left");
+        let down_strength = input.get_action_strength("ui_down");
+        let up_strength = input.get_action_strength("ui_up");
 
         let mut input_vector = Vector2::zero();
 
@@ -51,17 +76,16 @@ impl Player {
         input_vector.try_normalize().unwrap_or(input_vector)
     }
 
-    fn animate(&self, animation_tree: &AnimationTree, input_vector: Vector2) {
-        let playback_prop = animation_tree
-            .get("parameters/playback")
-            .try_to_object()
-            .unwrap();
-        let animation_state: TRef<AnimationNodeStateMachinePlayback> =
-            unsafe { playback_prop.assume_safe() };
-
+    fn animate(
+        &self,
+        animation_tree: &AnimationTree,
+        animation_state: &AnimationNodeStateMachinePlayback,
+        input_vector: Vector2,
+    ) {
         if input_vector != Vector2::zero() {
             animation_tree.set("parameters/Idle/blend_position", input_vector);
             animation_tree.set("parameters/Run/blend_position", input_vector);
+            animation_tree.set("parameters/Attack/blend_position", input_vector);
 
             animation_state.travel("Run");
         } else {
@@ -79,6 +103,22 @@ impl Player {
                 .velocity
                 .move_towards(Vector2::zero(), FRICTION * delta);
         }
+    }
+
+    fn handle_attack_input(&mut self, input: &Input) {
+        if input.is_action_just_pressed("attack") {
+            self.state = State::Attack;
+        }
+    }
+
+    fn attack(&mut self, animation_state: &AnimationNodeStateMachinePlayback) {
+        self.velocity = Vector2::zero();
+        animation_state.travel("Attack");
+    }
+
+    #[export]
+    fn attack_animation_finished(&mut self, _owner: &KinematicBody2D) {
+        self.state = State::Move;
     }
 }
 
