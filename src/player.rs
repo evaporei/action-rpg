@@ -1,5 +1,5 @@
 use crate::extensions::NodeExt;
-use gdnative::api::AnimationPlayer;
+use gdnative::api::AnimationTree;
 use gdnative::prelude::{Input, KinematicBody2D, NativeClass, Vector2, Vector2Godot};
 
 const ACCELERATION: f32 = 500.0;
@@ -23,12 +23,11 @@ impl Player {
 
     #[export]
     fn _physics_process(&mut self, owner: &KinematicBody2D, delta: f32) {
-        let animation_player =
-            unsafe { owner.get_typed_node::<AnimationPlayer, _>("AnimationPlayer") };
+        let animation_tree = unsafe { owner.get_typed_node::<AnimationTree, _>("AnimationTree") };
 
         let input_vector = self.get_movement_input();
 
-        self.animate(&animation_player, input_vector);
+        self.animate(&animation_tree, input_vector);
 
         self.r#move(input_vector, delta);
 
@@ -52,15 +51,10 @@ impl Player {
         input_vector.try_normalize().unwrap_or(input_vector)
     }
 
-    fn animate(&self, animation_player: &AnimationPlayer, input_vector: Vector2) {
+    fn animate(&self, animation_tree: &AnimationTree, input_vector: Vector2) {
         if input_vector != Vector2::zero() {
-            if input_vector.x > 0.0 {
-                animation_player.play("RunRight", -1.0, 1.0, false);
-            } else {
-                animation_player.play("RunLeft", -1.0, 1.0, false);
-            }
-        } else {
-            animation_player.play("IdleRight", -1.0, 1.0, false);
+            animation_tree.set("parameters/Idle/blend_position", input_vector);
+            animation_tree.set("parameters/Run/blend_position", input_vector);
         }
     }
 
