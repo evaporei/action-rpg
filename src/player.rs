@@ -34,7 +34,7 @@ impl Player {
             delta,
         );
 
-        owner.move_and_collide(self.velocity, false, false, false);
+        owner.move_and_collide(self.velocity, true, true, false);
     }
 
     fn r#move(
@@ -52,21 +52,15 @@ impl Player {
 
         if input_vector != Vector2::new(0.0, 0.0) {
             input_vector = input_vector.normalize();
-
             self.velocity += input_vector * ACCELERATION as f32 * delta as f32;
-            clamped(&mut self.velocity, (MAX_SPEED * delta) as f32);
+            self.velocity = self
+                .velocity
+                .clamp_length(0.0, MAX_SPEED as f32 * delta as f32);
         } else {
             self.velocity = self
                 .velocity
                 .move_towards(Vector2::new(0.0, 0.0), (FRICTION * delta) as f32);
         }
-    }
-}
-
-fn clamped(v: &mut Vector2, p_len: f32) {
-    if p_len < 1.0 {
-        *v /= 1.0;
-        *v *= p_len;
     }
 }
 
@@ -85,7 +79,7 @@ fn test_move_right() {
 
     player.r#move(1.0, 0.0, 0.0, 0.0, 0.6);
 
-    assert_eq!(player.velocity, Vector2::new(15.000001, 0.0));
+    assert_eq!(player.velocity, Vector2::new(6.0, 0.0));
 }
 
 #[test]
@@ -94,7 +88,7 @@ fn test_move_left() {
 
     player.r#move(0.0, 1.0, 0.0, 0.0, 0.6);
 
-    assert_eq!(player.velocity, Vector2::new(-1800.0002, 0.0));
+    assert_eq!(player.velocity, Vector2::new(-6.0, 0.0));
 }
 
 #[test]
@@ -103,7 +97,7 @@ fn test_move_down() {
 
     player.r#move(0.0, 0.0, 1.0, 0.0, 0.6);
 
-    assert_eq!(player.velocity, Vector2::new(0.0, 15.000001));
+    assert_eq!(player.velocity, Vector2::new(0.0, 6.0));
 }
 
 #[test]
@@ -112,7 +106,7 @@ fn test_move_up() {
 
     player.r#move(0.0, 0.0, 0.0, 1.0, 0.6);
 
-    assert_eq!(player.velocity, Vector2::new(0.0, -1800.0002));
+    assert_eq!(player.velocity, Vector2::new(0.0, -6.0));
 }
 
 #[test]
@@ -123,5 +117,5 @@ fn test_move_diagonals() {
     player.r#move(0.0, 1.0, 1.0, 0.0, 0.6);
     player.r#move(1.0, 0.0, 0.0, 1.0, 0.6);
 
-    assert_eq!(player.velocity, Vector2::new(-18_479_672.0, 10.606602));
+    assert_eq!(player.velocity, Vector2::new(-4.242641, 4.242641));
 }
