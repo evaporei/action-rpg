@@ -1,3 +1,5 @@
+use crate::extensions::NodeExt;
+use gdnative::api::AnimationPlayer;
 use gdnative::prelude::{Input, KinematicBody2D, NativeClass, Vector2, Vector2Godot};
 
 const ACCELERATION: f32 = 500.0;
@@ -14,11 +16,27 @@ pub struct Player {
 #[gdnative::methods]
 impl Player {
     fn new(_owner: &KinematicBody2D) -> Self {
-        Player::default()
+        Player {
+            velocity: Vector2::zero(),
+        }
     }
 
     #[export]
     fn _physics_process(&mut self, owner: &KinematicBody2D, delta: f32) {
+        let animation_player =
+            unsafe { owner.get_typed_node::<AnimationPlayer, _>("AnimationPlayer") };
+
+        let input_vector = self.get_movement_input();
+
+        self.animate(&animation_player, input_vector);
+
+        self.r#move(input_vector, delta);
+
+        self.velocity =
+            owner.move_and_slide(self.velocity, Vector2::zero(), false, 4, 0.785398, true);
+    }
+
+    fn get_movement_input(&self) -> Vector2 {
         let godot_singleton = Input::godot_singleton();
 
         let right_strength = godot_singleton.get_action_strength("ui_right");
@@ -26,33 +44,28 @@ impl Player {
         let down_strength = godot_singleton.get_action_strength("ui_down");
         let up_strength = godot_singleton.get_action_strength("ui_up");
 
-        self.r#move(
-            right_strength,
-            left_strength,
-            down_strength,
-            up_strength,
-            delta,
-        );
-
-        self.velocity =
-            owner.move_and_slide(self.velocity, Vector2::zero(), false, 4, 0.785398, true);
-    }
-
-    fn r#move(
-        &mut self,
-        right_strength: f64,
-        left_strength: f64,
-        down_strength: f64,
-        up_strength: f64,
-        delta: f32,
-    ) {
         let mut input_vector = Vector2::zero();
 
         input_vector.x = (right_strength - left_strength) as f32;
         input_vector.y = (down_strength - up_strength) as f32;
 
+        input_vector.try_normalize().unwrap_or(input_vector)
+    }
+
+    fn animate(&self, animation_player: &AnimationPlayer, input_vector: Vector2) {
         if input_vector != Vector2::zero() {
-            input_vector = input_vector.normalize();
+            if input_vector.x > 0.0 {
+                animation_player.play("RunRight", -1.0, 1.0, false);
+            } else {
+                animation_player.play("RunLeft", -1.0, 1.0, false);
+            }
+        } else {
+            animation_player.play("IdleRight", -1.0, 1.0, false);
+        }
+    }
+
+    fn r#move(&mut self, input_vector: Vector2, delta: f32) {
+        if input_vector != Vector2::zero() {
             self.velocity = self
                 .velocity
                 .move_towards(input_vector * MAX_SPEED, ACCELERATION * delta);
