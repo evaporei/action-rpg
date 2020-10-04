@@ -45,12 +45,12 @@ impl Player {
         up_strength: f64,
         delta: f32,
     ) {
-        let mut input_vector = Vector2::new(0.0, 0.0);
+        let mut input_vector = Vector2::zero();
 
         input_vector.x = (right_strength - left_strength) as f32;
         input_vector.y = (down_strength - up_strength) as f32;
 
-        if input_vector != Vector2::new(0.0, 0.0) {
+        if input_vector != Vector2::zero() {
             input_vector = input_vector.normalize();
             self.velocity = self
                 .velocity
@@ -58,7 +58,7 @@ impl Player {
         } else {
             self.velocity = self
                 .velocity
-                .move_towards(Vector2::new(0.0, 0.0), FRICTION * delta);
+                .move_towards(Vector2::zero(), FRICTION * delta);
         }
     }
 }
@@ -69,7 +69,7 @@ fn test_move_nothing() {
 
     player.r#move(0.0, 0.0, 0.0, 0.0, 0.6);
 
-    assert_eq!(player.velocity, Vector2::new(0.0, 0.0));
+    assert_eq!(player.velocity, Vector2::zero());
 }
 
 #[test]
