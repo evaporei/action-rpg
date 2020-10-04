@@ -1,6 +1,6 @@
 use crate::extensions::NodeExt;
-use gdnative::api::AnimationTree;
-use gdnative::prelude::{Input, KinematicBody2D, NativeClass, Vector2, Vector2Godot};
+use gdnative::api::{AnimationNodeStateMachinePlayback, AnimationTree};
+use gdnative::prelude::{Input, KinematicBody2D, NativeClass, TRef, Vector2, Vector2Godot};
 
 const ACCELERATION: f32 = 500.0;
 const MAX_SPEED: f32 = 80.0;
@@ -52,9 +52,20 @@ impl Player {
     }
 
     fn animate(&self, animation_tree: &AnimationTree, input_vector: Vector2) {
+        let playback_prop = animation_tree
+            .get("parameters/playback")
+            .try_to_object()
+            .unwrap();
+        let animation_state: TRef<AnimationNodeStateMachinePlayback> =
+            unsafe { playback_prop.assume_safe() };
+
         if input_vector != Vector2::zero() {
             animation_tree.set("parameters/Idle/blend_position", input_vector);
             animation_tree.set("parameters/Run/blend_position", input_vector);
+
+            animation_state.travel("Run");
+        } else {
+            animation_state.travel("Idle");
         }
     }
 
