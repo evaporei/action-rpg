@@ -51,15 +51,25 @@ impl Player {
 
                 self.r#move(input_vector, delta);
 
-                self.velocity =
-                    owner.move_and_slide(self.velocity, Vector2::zero(), false, 4, 0.785398, true);
-
                 self.handle_attack_input(input_singleton);
             }
             State::Attack => {
                 self.attack(&animation_state);
             }
         };
+    }
+
+    #[export]
+    fn _physics_process(&mut self, owner: &KinematicBody2D, _delta: f32) {
+        match self.state {
+            State::Move => {
+                self.velocity =
+                    owner.move_and_slide(self.velocity, Vector2::zero(), false, 4, 0.785398, true);
+            }
+            State::Attack => {
+                self.velocity = Vector2::zero();
+            }
+        }
     }
 
     fn get_movement_input(&self, input: &Input) -> Vector2 {
@@ -112,7 +122,6 @@ impl Player {
     }
 
     fn attack(&mut self, animation_state: &AnimationNodeStateMachinePlayback) {
-        self.velocity = Vector2::zero();
         animation_state.travel("Attack");
     }
 
