@@ -53,19 +53,19 @@ impl Player {
             State::Move => {
                 let input_vector = self.get_movement_input(input_singleton);
 
-                self.animate(&animation_tree, &animation_state, input_vector);
+                self.animate_on_input(&animation_tree, &animation_state, input_vector);
 
-                self.r#move(input_vector, delta);
+                self.move_on_input(input_vector, delta);
 
                 self.handle_attack_input(input_singleton);
                 self.handle_roll_input(input_singleton);
             }
             State::Attack => {
-                self.attack(&animation_state);
+                self.animate_attack(&animation_state);
             }
             State::Roll => {
-                self.velocity = self.roll_vector * ROLL_SPEED;
-                self.roll(&animation_state);
+                self.roll();
+                self.animate_roll(&animation_state);
             }
         };
     }
@@ -101,7 +101,7 @@ impl Player {
         input_vector.try_normalize().unwrap_or(input_vector)
     }
 
-    fn animate(
+    fn animate_on_input(
         &self,
         animation_tree: &AnimationTree,
         animation_state: &AnimationNodeStateMachinePlayback,
@@ -119,7 +119,7 @@ impl Player {
         }
     }
 
-    fn r#move(&mut self, input_vector: Vector2, delta: f32) {
+    fn move_on_input(&mut self, input_vector: Vector2, delta: f32) {
         if input_vector != Vector2::zero() {
             self.roll_vector = input_vector;
 
@@ -131,6 +131,10 @@ impl Player {
                 .velocity
                 .move_towards(Vector2::zero(), FRICTION * delta);
         }
+    }
+
+    fn roll(&mut self) {
+        self.velocity = self.roll_vector * ROLL_SPEED;
     }
 
     fn handle_attack_input(&mut self, input: &Input) {
@@ -145,11 +149,11 @@ impl Player {
         }
     }
 
-    fn attack(&mut self, animation_state: &AnimationNodeStateMachinePlayback) {
+    fn animate_attack(&mut self, animation_state: &AnimationNodeStateMachinePlayback) {
         animation_state.travel("Attack");
     }
 
-    fn roll(&mut self, animation_state: &AnimationNodeStateMachinePlayback) {
+    fn animate_roll(&mut self, animation_state: &AnimationNodeStateMachinePlayback) {
         animation_state.travel("Roll");
     }
 
