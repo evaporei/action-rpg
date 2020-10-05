@@ -1,16 +1,19 @@
 use gdnative::prelude::{godot_init, InitHandle, PackedScene, Ref, ResourceLoader, ThreadLocal};
 
+mod bat;
 mod extensions;
 mod grass;
 mod grass_effect;
 mod player;
 
+use bat::Bat;
 use grass::Grass;
 use grass_effect::GrassEffect;
 use player::Player;
 
 fn init(handle: InitHandle) {
     handle.add_class::<Player>();
+    handle.add_class::<Bat>();
     handle.add_class::<Grass>();
     handle.add_class::<GrassEffect>();
 }
