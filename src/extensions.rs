@@ -25,3 +25,25 @@ impl NodeExt for Node {
             .expect("node should be of the correct type")
     }
 }
+
+pub trait Vector2Ext {
+    fn up() -> Self;
+    fn down() -> Self;
+    fn left() -> Self;
+    fn right() -> Self;
+}
+
+impl Vector2Ext for Vector2 {
+    fn up() -> Self {
+        Vector2::new(0.0, -1.0)
+    }
+    fn down() -> Self {
+        Vector2::new(0.0, 1.0)
+    }
+    fn left() -> Self {
+        Vector2::new(-1.0, 0.0)
+    }
+    fn right() -> Self {
+        Vector2::new(1.0, 0.0)
+    }
+}

@@ -1,9 +1,10 @@
-use crate::extensions::NodeExt;
+use crate::extensions::{NodeExt, Vector2Ext};
 use gdnative::api::{AnimationNodeStateMachinePlayback, AnimationTree};
 use gdnative::prelude::{Input, KinematicBody2D, NativeClass, TRef, Vector2, Vector2Godot};
 
 const ACCELERATION: f32 = 500.0;
 const MAX_SPEED: f32 = 80.0;
+const ROLL_SPEED: f32 = 120.0;
 const FRICTION: f32 = 500.0;
 
 #[derive(NativeClass)]
@@ -12,11 +13,13 @@ const FRICTION: f32 = 500.0;
 pub struct Player {
     velocity: Vector2,
     state: State,
+    roll_vector: Vector2,
 }
 
 enum State {
     Move,
     Attack,
+    Roll,
 }
 
 impl Default for State {
@@ -28,7 +31,10 @@ impl Default for State {
 #[gdnative::methods]
 impl Player {
     fn new(_owner: &KinematicBody2D) -> Self {
-        Player::default()
+        Player {
+            roll_vector: Vector2::left(),
+            ..Default::default()
+        }
     }
 
     #[export]
@@ -52,9 +58,14 @@ impl Player {
                 self.r#move(input_vector, delta);
 
                 self.handle_attack_input(input_singleton);
+                self.handle_roll_input(input_singleton);
             }
             State::Attack => {
                 self.attack(&animation_state);
+            }
+            State::Roll => {
+                self.velocity = self.roll_vector * ROLL_SPEED;
+                self.roll(&animation_state);
             }
         };
     }
@@ -68,6 +79,10 @@ impl Player {
             }
             State::Attack => {
                 self.velocity = Vector2::zero();
+            }
+            State::Roll => {
+                self.velocity =
+                    owner.move_and_slide(self.velocity, Vector2::zero(), false, 4, 0.785398, true);
             }
         }
     }
@@ -96,6 +111,7 @@ impl Player {
             animation_tree.set("parameters/Idle/blend_position", input_vector);
             animation_tree.set("parameters/Run/blend_position", input_vector);
             animation_tree.set("parameters/Attack/blend_position", input_vector);
+            animation_tree.set("parameters/Roll/blend_position", input_vector);
 
             animation_state.travel("Run");
         } else {
@@ -105,6 +121,8 @@ impl Player {
 
     fn r#move(&mut self, input_vector: Vector2, delta: f32) {
         if input_vector != Vector2::zero() {
+            self.roll_vector = input_vector;
+
             self.velocity = self
                 .velocity
                 .move_towards(input_vector * MAX_SPEED, ACCELERATION * delta);
@@ -121,12 +139,28 @@ impl Player {
         }
     }
 
+    fn handle_roll_input(&mut self, input: &Input) {
+        if input.is_action_just_pressed("roll") {
+            self.state = State::Roll;
+        }
+    }
+
     fn attack(&mut self, animation_state: &AnimationNodeStateMachinePlayback) {
         animation_state.travel("Attack");
     }
 
+    fn roll(&mut self, animation_state: &AnimationNodeStateMachinePlayback) {
+        animation_state.travel("Roll");
+    }
+
     #[export]
     fn attack_animation_finished(&mut self, _owner: &KinematicBody2D) {
+        self.state = State::Move;
+    }
+
+    #[export]
+    fn roll_animation_finished(&mut self, _owner: &KinematicBody2D) {
+        self.velocity = self.velocity * 0.8;
         self.state = State::Move;
     }
 }
