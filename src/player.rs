@@ -32,7 +32,7 @@ impl Player {
     }
 
     #[export]
-    fn _physics_process(&mut self, owner: &KinematicBody2D, delta: f32) {
+    fn _process(&mut self, owner: &KinematicBody2D, delta: f32) {
         let animation_tree = unsafe { owner.get_typed_node::<AnimationTree, _>("AnimationTree") };
         let playback_prop = animation_tree
             .get("parameters/playback")
