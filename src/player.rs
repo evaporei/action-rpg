@@ -14,6 +14,7 @@ pub struct Player {
     velocity: Vector2,
     state: State,
     roll_vector: Vector2,
+    pub(crate) knockback_vector: Vector2,
 }
 
 enum State {
@@ -31,8 +32,10 @@ impl Default for State {
 #[gdnative::methods]
 impl Player {
     fn new(_owner: &KinematicBody2D) -> Self {
+        let roll_vector = Vector2::left();
         Player {
-            roll_vector: Vector2::left(),
+            roll_vector,
+            knockback_vector: roll_vector,
             ..Default::default()
         }
     }
@@ -122,6 +125,7 @@ impl Player {
     fn move_on_input(&mut self, input_vector: Vector2, delta: f32) {
         if input_vector != Vector2::zero() {
             self.roll_vector = input_vector;
+            self.knockback_vector = input_vector;
 
             self.velocity = self
                 .velocity
