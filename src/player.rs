@@ -1,5 +1,6 @@
 use crate::extensions::{NodeExt, Vector2Ext};
-use gdnative::api::{AnimationNodeStateMachinePlayback, AnimationTree};
+use crate::sword_hitbox::SwordHitbox;
+use gdnative::api::{AnimationNodeStateMachinePlayback, AnimationTree, Area2D};
 use gdnative::prelude::{Input, KinematicBody2D, NativeClass, TRef, Vector2, Vector2Godot};
 
 const ACCELERATION: f32 = 500.0;
@@ -14,7 +15,6 @@ pub struct Player {
     velocity: Vector2,
     state: State,
     roll_vector: Vector2,
-    pub(crate) knockback_vector: Vector2,
 }
 
 enum State {
@@ -32,10 +32,8 @@ impl Default for State {
 #[gdnative::methods]
 impl Player {
     fn new(_owner: &KinematicBody2D) -> Self {
-        let roll_vector = Vector2::left();
         Player {
-            roll_vector,
-            knockback_vector: roll_vector,
+            roll_vector: Vector2::left(),
             ..Default::default()
         }
     }
@@ -50,6 +48,11 @@ impl Player {
         let animation_state: TRef<AnimationNodeStateMachinePlayback> =
             unsafe { playback_prop.assume_safe() };
 
+        let sword_hitbox_node =
+            unsafe { owner.get_typed_node::<Area2D, _>("HitboxPivot/SwordHitbox") };
+
+        let instance = sword_hitbox_node.cast_instance::<SwordHitbox>().unwrap();
+
         let input_singleton = Input::godot_singleton();
 
         match self.state {
@@ -58,7 +61,9 @@ impl Player {
 
                 self.animate_on_input(&animation_tree, &animation_state, input_vector);
 
-                self.move_on_input(input_vector, delta);
+                let _ = instance.map_mut(|sword_hitbox, _| {
+                    self.move_on_input(input_vector, delta, sword_hitbox);
+                });
 
                 self.handle_attack_input(input_singleton);
                 self.handle_roll_input(input_singleton);
@@ -122,10 +127,10 @@ impl Player {
         }
     }
 
-    fn move_on_input(&mut self, input_vector: Vector2, delta: f32) {
+    fn move_on_input(&mut self, input_vector: Vector2, delta: f32, sword_hitbox: &mut SwordHitbox) {
         if input_vector != Vector2::zero() {
             self.roll_vector = input_vector;
-            self.knockback_vector = input_vector;
+            sword_hitbox.knockback_vector = input_vector;
 
             self.velocity = self
                 .velocity

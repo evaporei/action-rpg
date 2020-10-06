@@ -1,5 +1,5 @@
 use crate::extensions::NodeExt;
-use crate::player::Player;
+use crate::sword_hitbox::SwordHitbox;
 use gdnative::api::Area2D;
 use gdnative::prelude::{KinematicBody2D, NativeClass, Ref, Vector2, Vector2Godot};
 
@@ -30,12 +30,13 @@ impl Bat {
     #[export]
     #[allow(non_snake_case)]
     fn _on_Hurtbox_area_entered(&mut self, owner: &KinematicBody2D, _x: Ref<Area2D>) {
-        let player_node = unsafe { owner.get_typed_node::<KinematicBody2D, _>("../Player") };
+        let sword_hitbox_node =
+            unsafe { owner.get_typed_node::<Area2D, _>("../Player/HitboxPivot/SwordHitbox") };
 
-        let instance = player_node.cast_instance::<Player>().unwrap();
+        let instance = sword_hitbox_node.cast_instance::<SwordHitbox>().unwrap();
 
-        let _ = instance.map(|player, _| {
-            self.knockback = player.knockback_vector * 120.0;
+        let _ = instance.map(|sword_hitbox, _| {
+            self.knockback = sword_hitbox.knockback_vector * 120.0;
         });
     }
 }

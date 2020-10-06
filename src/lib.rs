@@ -5,15 +5,18 @@ mod extensions;
 mod grass;
 mod grass_effect;
 mod player;
+mod sword_hitbox;
 
 use bat::Bat;
 use grass::Grass;
 use grass_effect::GrassEffect;
 use player::Player;
+use sword_hitbox::SwordHitbox;
 
 fn init(handle: InitHandle) {
     handle.add_class::<Player>();
     handle.add_class::<Bat>();
+    handle.add_class::<SwordHitbox>();
     handle.add_class::<Grass>();
     handle.add_class::<GrassEffect>();
 }
