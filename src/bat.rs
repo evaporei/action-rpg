@@ -1,7 +1,9 @@
 use crate::extensions::NodeExt;
+use crate::stats;
+use crate::stats::Stats;
 use crate::sword_hitbox::SwordHitbox;
 use gdnative::api::Area2D;
-use gdnative::prelude::{KinematicBody2D, NativeClass, Ref, Vector2, Vector2Godot};
+use gdnative::prelude::{KinematicBody2D, NativeClass, Node, Ref, Vector2, Vector2Godot};
 
 #[derive(NativeClass)]
 #[inherit(KinematicBody2D)]
@@ -32,11 +34,19 @@ impl Bat {
     fn _on_Hurtbox_area_entered(&mut self, owner: &KinematicBody2D, _x: Ref<Area2D>) {
         let sword_hitbox_node =
             unsafe { owner.get_typed_node::<Area2D, _>("../Player/HitboxPivot/SwordHitbox") };
+        let stats_node = unsafe { owner.get_typed_node::<Node, _>("Stats") };
 
-        let instance = sword_hitbox_node.cast_instance::<SwordHitbox>().unwrap();
+        let sword_hitbox_instance = sword_hitbox_node.cast_instance::<SwordHitbox>().unwrap();
+        let stats_instance = stats_node.cast_instance::<Stats>().unwrap();
 
-        let _ = instance.map(|sword_hitbox, _| {
-            self.knockback = sword_hitbox.knockback_vector * 120.0;
+        let _ = stats_instance.map_mut(|stats, _| {
+            if let stats::State::Dead = stats.receive_damage(1) {
+                owner.queue_free();
+            } else {
+                let _ = sword_hitbox_instance.map(|sword_hitbox, _| {
+                    self.knockback = sword_hitbox.knockback_vector * 120.0;
+                });
+            }
         });
     }
 }
