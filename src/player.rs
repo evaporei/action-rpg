@@ -33,7 +33,7 @@ impl Default for State {
 impl Player {
     fn new(_owner: &KinematicBody2D) -> Self {
         Player {
-            roll_vector: Vector2::left(),
+            roll_vector: Vector2::down(),
             ..Default::default()
         }
     }
