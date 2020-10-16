@@ -1,9 +1,12 @@
 use crate::extensions::NodeExt;
+use crate::load_scene;
 use crate::stats;
 use crate::stats::Stats;
 use crate::sword_hitbox::SwordHitbox;
 use gdnative::api::Area2D;
-use gdnative::prelude::{KinematicBody2D, NativeClass, Node, Ref, Vector2, Vector2Godot};
+use gdnative::prelude::{
+    KinematicBody2D, NativeClass, Node, Node2D, Ref, TRef, Vector2, Vector2Godot,
+};
 
 #[derive(NativeClass)]
 #[inherit(KinematicBody2D)]
@@ -42,11 +45,27 @@ impl Bat {
         let _ = stats_instance.map_mut(|stats, _| {
             if let stats::State::Dead = stats.receive_damage(1) {
                 owner.queue_free();
+
+                self.run_death_animation(owner);
             } else {
                 let _ = sword_hitbox_instance.map(|sword_hitbox, _| {
                     self.knockback = sword_hitbox.knockback_vector * 120.0;
                 });
             }
         });
+    }
+
+    fn run_death_animation(&self, owner: &KinematicBody2D) {
+        let enemy_death_effect_scene = load_scene("res://scenes/EnemyDeathEffect.tscn").unwrap();
+
+        let enemy_death_effect_node =
+            unsafe { enemy_death_effect_scene.instance(0).unwrap().assume_safe() };
+        let enemy_death_effect: TRef<Node2D> = enemy_death_effect_node.cast().unwrap();
+
+        enemy_death_effect.set_global_position(owner.global_position());
+
+        let bat_parent = unsafe { owner.get_parent().unwrap().assume_safe() };
+
+        bat_parent.add_child(enemy_death_effect, false);
     }
 }

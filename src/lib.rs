@@ -25,6 +25,8 @@ fn init(handle: InitHandle) {
 }
 
 pub fn load_scene(path: &str) -> Option<Ref<PackedScene, ThreadLocal>> {
+    // this already caches the resource if it has already been loaded.
+    // This is defined by the third argument
     let scene = ResourceLoader::godot_singleton().load(path, "PackedScene", false)?;
 
     let scene = unsafe { scene.assume_thread_local() };
